@@ -21,13 +21,20 @@ public:
     void set_angle(int d) {
         if (d < 0) d = 0;
         if (d > 180) d = 180;
-        now_angle = d;
         int target_angle = min + (max - min) * d / 180;
-        int step = (target_angle > now_angle) ? 100 : -100;
+        int step = (d > now_angle) ? 100 : -100;
      for (int p = now_angle; (step > 0 ? p <= target_angle : p >= target_angle);  p += step) {
         servo.pulsewidth_us(p);
         ThisThread::sleep_for(10);
     }
+    now_angle = d;
+    }
+   void fast_angle(int s) {
+        if (s < 0) s = 0;
+        if (s > 180) s = 180;
+        now_angle = s;
+        int pulse = min + (max - min) * s / 180;
+        servo.pulsewidth_us(pulse);
     }
     };
 
