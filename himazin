@@ -1,19 +1,106 @@
-#include"mbed.h"
-#include"Servo.hpp"
-#include"config.hpp"
+#include "mbed.h"
+#include "PwmOut.h"
 #include "motor.hpp"
-#include "encoder.hpp"
-Timer timer;
-int main(){
-    Servo servo[2]{
-        {(PA_7)},
-        {(PB_2)}};
-    double t=timer.read();
-    
-    servo[0].set_angle(0);
-    
-    while(true){
-   while(timer.read() - t < dt);
-      
+#include "config.hpp"
+#include "robomaster_can.hpp"
+#include "pid.hpp"
+#include <cstdint>
+
+uint8_t right_arm = 4;
+uint8_t left_arm = 6;
+uint8_t center_arm = 5;
+int bit = 100000000;
+
+void spring(PwmOut* servo) {
+    servo->pulsewidth_us(1500);
 }
+
+int main() {
+    Timer timer;
+    timer.start();
+    double t=timer.read();
+    PwmOut servo[7]{
+        {PC_8},
+        {PB_2},
+        {PB_10},
+        {PC_7},
+        {PA_6},
+        {PC_9},
+        {PA_0}
+    };
+
+    DigitalIn lim[6]{
+        {PC_11},
+        {PD_2},
+        {PB_7},
+        {PA_4},
+        {PC_10},
+        {PC_12}
+    };
+
+    robomaster::Robomaster_Array can_array(PB_5, PB_6, bit);
+    robomaster::Robomaster_ESC esc0(right_arm);
+    robomaster::Robomaster_ESC esc1(center_arm);
+    robomaster::Robomaster_ESC esc2(left_arm);
+
+    can_array.add_ESC(&esc0);
+    can_array.add_ESC(&esc1);
+    can_array.add_ESC(&esc2);
+
+    Hand arm0(&servo[1], &servo[0], &esc0, &lim[1]);
+    Hand arm1(&servo[3], &servo[2], &esc1, &lim[3]);
+    Hand arm2(&servo[5], &servo[4], &esc2, &lim[5]);
+
+   
+
+//     arm2.scaffold_hold();
+//     arm1.scaffold_hold();
+//     arm2.scaffold_hold();
+//     ThisThread::sleep_for(1000);
+
+//     arm0.ring_hold();
+//     arm1.ring_hold();
+//     ThisThread::sleep_for(1000);
+
+//     arm0.scaffold_hold();
+//     arm1.scaffold_hold();
+//     arm2.scaffold_hold();
+//     ThisThread::sleep_for(1000);
+
+//     arm0.scaffold_leave();
+//     arm1.scaffold_leave();
+//     arm2.scaffold_leave();
+//     ThisThread::sleep_for(1000);
+
+//     arm0.ring_leave();
+//     arm1.ring_leave();
+//     arm0.scaffold_leave();
+//     arm1.scaffold_leave();
+//     ThisThread::sleep_for(1000);
+
+//     arm1.ring_hold();
+//     arm2.ring_hold();
+//     ThisThread::sleep_for(1000);
+
+//     arm2.ring_leave();
+//     arm2.scaffold_leave();
+//     ThisThread::sleep_for(1000);
+
+//     spring(&servo[6]);
+//     ThisThread::sleep_for(1000);
+// arm1.ring_leave();
+//  ThisThread::sleep_for(1000);
+
+
+    
+    while (true) {
+        arm0.ring_hold();
+        arm1.ring_hold();
+        arm2.ring_hold();
+        arm0.scaffold_hold();
+        arm1.scaffold_hold();
+        arm2.scaffold_hold();
+        while(timer.read() - t < dt);
+        t = timer.read();
+    }
 }
